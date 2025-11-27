@@ -34,9 +34,10 @@ C'est le "couteau suisse" qui permet de lire et écrire les fichiers MP3/WAV. Sa
 Une fois les pré-requis installés :
 
 ### 🪟 Sur Windows
-1.  Double-cliquez sur `INSTALL.bat`.
-    *(Cela va télécharger les cerveaux de l'IA, environ 2 Go. Patientez).*
-2.  Une fois fini, double-cliquez sur `LANCER_STUDIO.bat` pour ouvrir le studio.
+1.  Double-cliquez sur `SETUP.bat`.
+2.  Choisissez le HArdware GPU compatible
+3.  *(Cela va télécharger les cerveaux de l'IA, environ 2 Go. Patientez).*
+4.  Une fois fini, double-cliquez sur `LANCER_STUDIO.bat` pour ouvrir le studio.
 
 ### 🐧 Sur Linux / macOS
 1.  Ouvrez un terminal dans le dossier.
@@ -89,5 +90,6 @@ Lorsque la fenêtre de lecture (visualiseur d'onde) est ouverte :
 * **Frontend :** HTML5, Glassmorphism CSS, WaveSurfer.js
 * **Audio AI :** Torch, Demucs v4 (Hybrid Transformer), MDX-Net (UVR)
 * **Wrapper :** PyWebview (Standalone Window)
+
 
 
