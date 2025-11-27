@@ -1,19 +1,26 @@
 import os
+import logging
+os.environ["ORT_STRATEGY"] = "system"
 import numpy as np
 from audio_separator.separator import Separator
 from pydub import AudioSegment
 import scipy.io.wavfile as wavfile
 from scipy.signal import butter, lfilter
+
 INPUT_FOLDER="Input"; OUTPUT_FOLDER="Output"; MODEL_NAME="htdemucs_6s.yaml" 
 FORMATS=('.mp3','.wav','.flac','.ogg','.m4a','.mp4','.wma')
 cached_separators = {}
+
 def get_separator(model_code):
     model_name = "htdemucs_6s.yaml" if model_code == '6s' else "htdemucs.yaml"
     global cached_separators
     if model_name not in cached_separators:
+        print(f"Chargement {model_name}...")
         sep = Separator(output_dir=OUTPUT_FOLDER, model_file_dir=os.path.join(OUTPUT_FOLDER, "models"), output_format="wav")
-        sep.load_model(model_name); cached_separators[model_name] = sep
+        sep.load_model(model_name)
+        cached_separators[model_name] = sep
     return cached_separators[model_name]
+
 def apply_gate(path, thresh):
     try:
         audio=AudioSegment.from_file(path); chunks=[audio[i:i+50] for i in range(0,len(audio),50)]; processed=[c-30 if c.dBFS<thresh else c for c in chunks]; sum(processed).export(path,format="wav",parameters=["-acodec","pcm_s16le"])
@@ -25,6 +32,7 @@ def safe_normalize_and_save(data, rate, path):
     if rms < 10.0: silence = np.zeros_like(data).astype(np.int16); wavfile.write(path, rate, silence); return
     max_val = np.max(np.abs(data)); target_ceiling = 32000.0
     if max_val > target_ceiling: data = data * (target_ceiling / max_val)
+    data = np.clip(data, -32768, 32767)
     wavfile.write(path, rate, data.astype(np.int16))
 def apply_studio_eq(file_path, instrument_name):
     try:
@@ -58,7 +66,6 @@ def recover_lost_frequencies_safe(original_path, stem_path, other_stems_paths, o
         target_stem = AudioSegment.from_file(stem_path)
         final_mix = target_stem.overlay(residual - 4)
         final_mix.export(output_path, format="wav")
-        print(f"Densité restaurée (Safe): {os.path.basename(stem_path)}")
     except Exception as e: print(f"Erreur Recovery Safe: {e}")
 def process_audio(progress_callback=None, smart_recovery=False, stem_mode='6s'):
     if not os.path.exists(INPUT_FOLDER): os.makedirs(INPUT_FOLDER)

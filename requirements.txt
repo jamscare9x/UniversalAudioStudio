@@ -1,5 +1,5 @@
 flask
-audio-separator[gpu]
+audio-separator==0.29.0
 pydub
 noisereduce
 scipy
@@ -9,4 +9,4 @@ werkzeug
 pywebview
 pyinstaller
 psutil
-nvidia-ml-py
+mutagen

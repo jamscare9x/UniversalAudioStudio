@@ -11,10 +11,18 @@ from flask import Flask, render_template, jsonify, request, send_from_directory,
 from werkzeug.utils import secure_filename
 
 HAS_GPU = False
+GPU_NAME = "CPU Mode"
 try:
+    import onnxruntime as ort
+    providers = ort.get_available_providers()
+    if 'DmlExecutionProvider' in providers: 
+        HAS_GPU = True
+        GPU_NAME = "DirectML (AMD/Intel)"
+    elif 'CUDAExecutionProvider' in providers:
+        HAS_GPU = True
+        GPU_NAME = "NVIDIA CUDA"
     import pynvml
     pynvml.nvmlInit()
-    HAS_GPU = True
 except: pass
 
 import suno_splitter
@@ -23,6 +31,7 @@ import suno_dereverb
 import suno_vocal_split
 import suno_remaster
 import universal_analyzer
+import technical_report
 
 if getattr(sys, 'frozen', False):
     BASE_DIR = sys._MEIPASS
@@ -69,18 +78,18 @@ def get_system_stats():
     cpu = psutil.cpu_percent(interval=None)
     ram = psutil.virtual_memory().percent
     gpu = 0
-    if HAS_GPU:
+    if "NVIDIA" in GPU_NAME:
         try:
+            import pynvml
             handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-            util = pynvml.nvmlDeviceGetUtilizationRates(handle)
-            gpu = util.gpu
-        except: gpu = 0
-    return {'cpu': cpu, 'ram': ram, 'gpu': gpu, 'has_gpu': HAS_GPU}
+            gpu = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
+        except: pass
+    return {'cpu': cpu, 'ram': ram, 'gpu': gpu, 'gpu_name': GPU_NAME}
 
 def run_wrapper(func, name, **kwargs):
     global is_processing
     is_processing = True
-    update_progress(0, "Initialisation...")
+    update_progress(0, "Init...")
     update_status(f"{name} en cours...")
     try:
         original_cwd = os.getcwd()
@@ -88,15 +97,14 @@ def run_wrapper(func, name, **kwargs):
         func(progress_callback=update_progress, **kwargs)
         os.chdir(original_cwd)
         update_status(f"{name} terminé.")
-        update_progress(100, "Fini.")
+        update_progress(100, "Done.")
     except Exception as e: update_status(f"Erreur: {e}")
-    finally:
-        is_processing = False
+    finally: is_processing = False
 
 def run_analyze_wrapper():
     global is_processing, last_analysis_results
     is_processing = True
-    update_progress(0, "Chargement...")
+    update_progress(0, "Loading...")
     update_status("Analyse en cours...")
     try:
         input_path = FOLDER_MAP['input']
@@ -104,11 +112,9 @@ def run_analyze_wrapper():
         results = universal_analyzer.analyze_folder_and_return_data(input_path, progress_callback=update_progress)
         if results: last_analysis_results = results
         update_status("Analyse terminée.")
-        update_progress(100, "Fini.")
-    except Exception as e: 
-        update_status(f"Erreur Analyse: {e}")
-    finally:
-        is_processing = False
+        update_progress(100, "Done.")
+    except Exception as e: update_status(f"Erreur Analyse: {e}")
+    finally: is_processing = False
 
 @app.route('/')
 def index():
@@ -116,20 +122,27 @@ def index():
     for key, path in FOLDER_MAP.items():
         try: counts[key] = len([f for f in os.listdir(path) if f.lower().endswith(('.wav', '.mp3', '.flac'))])
         except: counts[key] = 0
-    return render_template('index.html', status=current_status, counts=counts)
+    return render_template('index.html', status=current_status, counts=counts, gpu_name=GPU_NAME)
 
 @app.route('/status')
 def get_status(): 
-    return jsonify({
-        'status': current_status, 
-        'sub_step': current_sub_step,
-        'processing': is_processing, 
-        'progress': current_progress, 
-        'sys': get_system_stats()
-    })
+    return jsonify({'status': current_status, 'sub_step': current_sub_step, 'processing': is_processing, 'progress': current_progress, 'sys': get_system_stats()})
 
 @app.route('/get_analysis')
 def get_analysis(): return jsonify(last_analysis_results)
+
+@app.route('/get_tech_report')
+def get_tech_report():
+    importlib.reload(technical_report)
+    report = technical_report.get_audio_metadata(FOLDER_MAP['input'])
+    bpm_map = {item['name']: item for item in last_analysis_results} if last_analysis_results else {}
+    data = []
+    for item in report:
+        info = bpm_map.get(item['filename'], {"bpm": "-", "key": "-"})
+        item['bpm'] = info.get('bpm', '-')
+        item['key'] = info.get('key', '-')
+        data.append(item)
+    return jsonify(data)
 
 @app.route('/list_files/<category>')
 def list_files_route(category):
@@ -141,14 +154,12 @@ def list_files_route(category):
 
 @app.route('/audio/<category>/<filename>')
 def serve_audio(category, filename): return send_from_directory(FOLDER_MAP.get(category), filename)
-
 @app.route('/download/<category>/<filename>')
 def download_file(category, filename): return send_from_directory(FOLDER_MAP.get(category), filename, as_attachment=True)
-
 @app.route('/download_zip/<category>')
 def download_zip(category):
     folder = FOLDER_MAP.get(category)
-    if not folder or not os.path.exists(folder): return "Erreur", 404
+    if not folder or not os.path.exists(folder): return "Error", 404
     memory_file = io.BytesIO()
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
         found = False
@@ -157,7 +168,7 @@ def download_zip(category):
                 if file.lower().endswith(('.wav', '.mp3', '.flac')) and not file.startswith('.'):
                     zf.write(os.path.join(root, file), file)
                     found = True
-    if not found: return "Vide", 404
+    if not found: return "Empty", 404
     memory_file.seek(0)
     return send_file(memory_file, download_name=f"{category}_pack.zip", as_attachment=True)
 
@@ -165,16 +176,23 @@ def download_zip(category):
 def upload_files():
     if 'files[]' not in request.files: return jsonify({'error': 'No file'}), 400
     files = request.files.getlist('files[]')
-    saved = 0
+    saved_count = 0
+    if not os.path.exists(FOLDER_MAP['input']): os.makedirs(FOLDER_MAP['input'])
     for file in files:
         if file and file.filename != '':
-            file.save(os.path.join(FOLDER_MAP['input'], secure_filename(file.filename)))
-            saved += 1
-    return jsonify({'message': 'OK'})
+            filename = secure_filename(file.filename)
+            save_path = os.path.join(FOLDER_MAP['input'], filename)
+            try:
+                file.save(save_path)
+                if os.path.getsize(save_path) > 0: saved_count += 1
+                else: os.remove(save_path)
+            except: pass
+    update_status(f"{saved_count} fichier(s) importé(s).")
+    return jsonify({'message': 'OK', 'count': saved_count})
 
 @app.route('/clear_data', methods=['POST'])
 def clear_data():
-    global is_processing
+    global is_processing, last_analysis_results, current_progress, current_sub_step
     if is_processing: return jsonify({'error': 'Busy'}), 400
     for folder in FOLDER_MAP.values():
         if os.path.exists(folder):
@@ -183,11 +201,10 @@ def clear_data():
                 if os.path.isfile(fp) and not f.startswith('.'):
                     try: os.remove(fp)
                     except: pass
-    global last_analysis_results, current_progress, current_sub_step
-    last_analysis_results = [{"name": "Aucune donnée", "bpm": "-", "key": "-"}]
+    last_analysis_results = [{"name": "No Data", "bpm": "-", "key": "-"}]
     current_progress = 0
     current_sub_step = ""
-    update_status("Session vidée.")
+    update_status("Session cleared.")
     return jsonify({'message': 'Clean'})
 
 @app.route('/action/<action_name>', methods=['POST'])
@@ -198,10 +215,7 @@ def trigger_action(action_name):
     thread = None
     data = request.get_json(silent=True) or {}
     
-    if action_name == 'split': 
-        mode_stems = data.get('stems', '6s')
-        recovery = data.get('recovery', False)
-        thread = threading.Thread(target=run_wrapper, args=(suno_splitter.process_audio, "Splitter"), kwargs={'smart_recovery': recovery, 'stem_mode': mode_stems})
+    if action_name == 'split': thread = threading.Thread(target=run_wrapper, args=(suno_splitter.process_audio, "Splitter"), kwargs={'smart_recovery': data.get('recovery', False), 'stem_mode': data.get('stems', '6s')})
     elif action_name == 'clean': thread = threading.Thread(target=run_wrapper, args=(suno_cleaner.batch_clean, "Cleaner"), kwargs={'mode': data.get('mode', 'hifi')})
     elif action_name == 'dereverb': thread = threading.Thread(target=run_wrapper, args=(suno_dereverb.process_dereverb, "De-Reverb"))
     elif action_name == 'vocals': thread = threading.Thread(target=run_wrapper, args=(suno_vocal_split.process_vocal_split, "Vocal Split"))
@@ -222,5 +236,5 @@ if __name__ == '__main__':
     t.daemon = True
     t.start()
     time.sleep(1)
-    webview.create_window("Universal Audio Studio", "http://127.0.0.1:54321", width=1280, height=900, resizable=True, min_size=(1000, 700), background_color='#1a1a2e')
+    webview.create_window("Universal Audio Studio V2.34", "http://127.0.0.1:54321", width=1280, height=900, resizable=True, min_size=(1000, 700), background_color='#1a1a2e')
     webview.start()

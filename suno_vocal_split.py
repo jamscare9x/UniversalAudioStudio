@@ -17,8 +17,10 @@ def process_vocal_split(progress_callback=None):
     sep = get_separator(); total = len(targets)
     for i, f in enumerate(targets):
         if progress_callback: progress_callback(int((i/total)*100), f"Splitting : {f}")
-        outs = sep.separate(os.path.join(source, f))
-        for o in outs:
-            old = os.path.join(OUTPUT, o)
-            if "Instrumental" in o: n=os.path.join(OUTPUT,f"BACKING_{f}"); os.rename(old,n) if not os.path.exists(n) else os.remove(n) or os.rename(old,n)
-            elif "Vocals" in o: n=os.path.join(OUTPUT,f"LEAD_{f}"); os.rename(old,n) if not os.path.exists(n) else os.remove(n) or os.rename(old,n)
+        try:
+            outs = sep.separate(os.path.join(source, f))
+            for o in outs:
+                old = os.path.join(OUTPUT, o)
+                if "Instrumental" in o: n=os.path.join(OUTPUT,f"BACKING_{f}"); os.rename(old,n) if not os.path.exists(n) else os.remove(n) or os.rename(old,n)
+                elif "Vocals" in o: n=os.path.join(OUTPUT,f"LEAD_{f}"); os.rename(old,n) if not os.path.exists(n) else os.remove(n) or os.rename(old,n)
+        except: pass
