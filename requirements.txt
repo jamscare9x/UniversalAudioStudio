@@ -1,0 +1,12 @@
+flask
+audio-separator[gpu]
+pydub
+noisereduce
+scipy
+numpy<2.0
+librosa
+werkzeug
+pywebview
+pyinstaller
+psutil
+nvidia-ml-py
