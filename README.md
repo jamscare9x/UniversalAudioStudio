@@ -48,6 +48,8 @@ Cette version intègre des moteurs audio entièrement réécrits pour corriger l
 | **Drum Separation** | Oui (Kick/Snare/Hats séparés) | Non (Drums est une seule piste) | Non |
 | **Débruitage** | Oui (Spectral Cleaner) | Non | Non |
 
+
+> *Universal Audio Studio est supérieur aux outils en ligne sur la qualité brute (pas de compression) et supérieur aux logiciels DJ sur la précision de séparation (pas d'artefacts temps réel). C'est l'outil de préparation ultime, offrant des fonctionnalités de réparation (Inpainting) et de séparation fine (Drum Lab) que personne d'autre ne propose dans un seul package gratuit.*
 ---
 
 
@@ -193,6 +195,7 @@ Ce projet est un "GUI Wrapper" et un pipeline d'amélioration pour plusieurs tec
 * OpenAI Whisper pour la transcription des paroles.
 
 **Licence :** MIT License. Vous êtes libre de modifier et distribuer.
+
 
 
 
