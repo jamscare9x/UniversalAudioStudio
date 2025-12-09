@@ -10,3 +10,5 @@ pywebview
 pyinstaller
 psutil
 mutagen
+faster-whisper
+soundfile

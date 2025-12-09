@@ -5,7 +5,6 @@ cached_dereverb = None
 def get_separator():
     global cached_dereverb
     if cached_dereverb is None:
-        print("Chargement De-Reverb...")
         sep = Separator(output_dir=OUTPUT, model_file_dir=os.path.join(OUTPUT, "models"), output_format="wav")
         sep.load_model(MODEL); cached_dereverb = sep
     return cached_dereverb

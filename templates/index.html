@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Universal Audio Studio V2</title>
+    <title>Universal Audio Studio</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,16 +11,37 @@
     <style>
         :root { --glass-bg: rgba(30, 30, 40, 0.7); --glass-border: rgba(255, 255, 255, 0.08); --accent-color: #70a1ff; --text-main: #f0f0f0; --text-muted: #a0a0b0; --track-bg: rgba(0,0,0,0.4); --solo-color: #f1c40f; --mute-color: #e74c3c; --loop-color: #2ed573; }
         body { background: radial-gradient(circle at top left, #1a1a2e 0%, #0f0f1a 100%); background-attachment: fixed; color: var(--text-main); font-family: 'Outfit', sans-serif; min-height: 100vh; user-select: none; }
-        .glass-card { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 16px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; }
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 16px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
         h1 { font-weight: 300; letter-spacing: 2px; text-transform: uppercase; font-size: 2rem; margin-bottom: 0; }
         h4 { font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; }
         .text-muted { color: var(--text-muted) !important; font-size: 0.85rem; }
         .glass-badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
-        .help-btn { background: transparent; border: none; color: var(--text-muted); cursor: help; font-size: 0.9rem; margin-left: 5px; }
-        .help-btn:hover { color: var(--accent-color); }
-        .popover { background-color: #1a1a2e; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .popover-header { background-color: rgba(255,255,255,0.05); color: white; border-bottom: 1px solid var(--glass-border); }
-        .popover-body { color: #ccc; font-size: 0.85rem; }
+        
+        .custom-tooltip {
+            visibility: hidden;
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 100;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+            width: max-content;
+            max-width: 200px;
+            pointer-events: none;
+            border: 1px solid #444;
+        }
+        .btn:hover .custom-tooltip, .glass-card:hover .custom-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .status-container { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; margin-bottom: 40px; }
         .progress-glow { height: 8px; background-color: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-top: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.5) inset; }
         .progress-bar-glow { height: 100%; background: linear-gradient(90deg, #3742fa, #70a1ff); box-shadow: 0 0 15px #3742fa; width: 0%; transition: width 0.5s ease; }
@@ -28,15 +49,15 @@
         .monitor-item { flex: 1; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 15px; display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; }
         .monitor-fill { height: 100%; background: var(--accent-color); transition: width 0.5s; }
         .monitor-bar { height: 4px; width: 100%; background: rgba(255,255,255,0.1); margin-top: 5px; border-radius: 2px; overflow: hidden; }
-        .btn { border-radius: 8px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; font-weight: 600; padding: 10px 15px; border: none; transition: all 0.2s; }
-        .btn-primary-glow { background: linear-gradient(135deg, #3742fa, #5352ed); color: white; box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3); border:none; }
-        .btn-warning-glow { background: linear-gradient(135deg, #ffa502, #e67e22); color: white; border:none; }
-        .btn-danger-glow { background: linear-gradient(135deg, #ff4757, #ff6b81); color: white; border:none; }
-        .btn-success-glow { background: linear-gradient(135deg, #2ed573, #7bed9f); color: #1e1e2f; border:none; }
-        .btn-info-glow { background: linear-gradient(135deg, #70a1ff, #1e90ff); color: white; border:none; }
+        .btn { border-radius: 8px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; font-weight: 600; padding: 10px 15px; border: none; transition: all 0.2s; position: relative; }
+        .btn-primary-glow { background: linear-gradient(135deg, #3742fa, #5352ed); color: white; box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3); }
+        .btn-warning-glow { background: linear-gradient(135deg, #ffa502, #e67e22); color: white; }
+        .btn-danger-glow { background: linear-gradient(135deg, #ff4757, #ff6b81); color: white; }
+        .btn-success-glow { background: linear-gradient(135deg, #2ed573, #7bed9f); color: #1e1e2f; }
+        .btn-info-glow { background: linear-gradient(135deg, #70a1ff, #1e90ff); color: white; }
+        .btn-purple-glow { background: linear-gradient(135deg, #a55eea, #8854d0); color: white; }
         .btn-outline-glass { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main); }
         .btn-outline-glass:hover { background: rgba(255, 255, 255, 0.1); color: white; }
-        .btn-dashed { border: 2px dashed rgba(255, 255, 255, 0.2); background: transparent; color: var(--text-muted); width: 100%; padding: 15px; }
         .step-number { font-size: 3rem; position: absolute; right: 10px; top: 0px; opacity: 0.05; font-weight: 700; }
         #fileListContainer { margin-top: 10px; max-height: 150px; overflow-y: auto; padding-right: 5px; }
         .file-badge { display: block; background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 6px; margin-bottom: 5px; font-size: 0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-left: 3px solid var(--accent-color); }
@@ -47,33 +68,32 @@
         .track-filename { font-size: 0.7rem; color: var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .track-wave { flex-grow: 1; position: relative; height: 50px; opacity: 0.8; }
         .track-controls { display: flex; gap: 8px; flex-shrink: 0; margin-left: 10px; }
-        .btn-control { width: 36px; height: 36px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #aaa; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-        .btn-control:hover { background: rgba(255,255,255,0.1); color: white; transform: scale(1.1); }
+        .btn-control { width: 36px; height: 36px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #aaa; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .btn-control:hover { background: rgba(255,255,255,0.2); color: white; transform: scale(1.1); }
         .active-mute { background: #e74c3c !important; color: white !important; box-shadow: 0 0 10px rgba(231,76,60,0.4); }
         .active-solo { background: #f1c40f !important; color: #1e1e2f !important; box-shadow: 0 0 10px rgba(241, 196, 15, 0.4); }
+        .active-loop { color: #2ed573 !important; border-color: #2ed573 !important; background: rgba(46,213,115,0.1); }
         .modal-content { background: #1a1a2e; border: 1px solid var(--glass-border); color: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .global-transport { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 16px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(15px); border-bottom: 1px solid var(--glass-border); }
         .play-btn { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3742fa, #70a1ff); color: white; border: none; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 15px rgba(55, 66, 250, 0.4); }
         .play-btn:hover { transform: scale(1.05); }
         .nav-btn { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px 12px; font-size: 0.85rem; margin: 0 2px; cursor: pointer; }
         .nav-btn:hover { background: rgba(255,255,255,0.1); color: white; }
-        .active-loop { color: #2ed573 !important; border-color: #2ed573 !important; background: rgba(46,213,115,0.1); }
-        .flag-btn { background: transparent; border: none; font-size: 1.2rem; opacity: 0.5; cursor: pointer; transition: opacity 0.2s; }
-        .flag-btn:hover, .flag-btn.active { opacity: 1; transform: scale(1.2); }
-        .tech-info { font-family: 'Courier New', monospace; color: #70a1ff; font-size: 0.9rem; }
-        .tag-info { color: #eccc68; font-size: 0.9rem; }
-        .popover { background-color: #1a1a2e; border: 1px solid var(--glass-border); }
-        .popover-header { background-color: rgba(255,255,255,0.05); color: white; border-bottom: 1px solid var(--glass-border); }
-        .popover-body { color: #ccc; font-size: 0.85rem; }
+        
+        .flag-btn { border: none; background: none; font-size: 1.2rem; filter: grayscale(1); opacity: 0.5; transition: 0.2s; }
+        .flag-btn.active { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
     </style>
 </head>
 <body class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-5">
-        <div><h1><span data-i18n="app_title">Universal Audio Studio</span> <span style="font-size:1rem;vertical-align:middle;opacity:0.5;">V2.33</span></h1><p class="text-muted mb-0" data-i18n="app_subtitle">AI-Powered Stem Separation & Mastering</p></div>
+        <div><h1><span data-i18n="app_title">Universal Audio Studio</span> <span style="font-size:1rem;vertical-align:middle;opacity:0.5;">V5.3.6</span></h1><p class="text-muted mb-0" data-i18n="app_subtitle">Ultimate Player: Speed, Loop & Smart Controls</p></div>
         <div class="d-flex align-items-center gap-3">
-             <div><button class="flag-btn active" onclick="setLang('fr')">🇫🇷</button><button class="flag-btn" onclick="setLang('en')">🇬🇧</button></div>
+             <div>
+                <button id="btn-fr" class="flag-btn active" onclick="setLang('fr')">🇫🇷</button>
+                <button id="btn-en" class="flag-btn" onclick="setLang('en')">🇬🇧</button>
+             </div>
+             <button onclick="showAbout()" class="btn btn-outline-glass btn-sm" title="Changelog / Infos" id="info-btn">ℹ️</button>
              <span class="badge glass-badge text-muted">{{ gpu_name }}</span>
-             <button class="btn btn-outline-glass" style="width:40px;height:40px;padding:0;" onclick="showAbout()"><i class="fas fa-info"></i></button>
              <button onclick="confirmReset()" class="btn btn-outline-glass px-4" data-i18n="btn_new_session">🗑️ Nouvelle Session</button>
         </div>
     </div>
@@ -81,7 +101,7 @@
     <div class="status-container">
         <div class="d-flex justify-content-between align-items-end mb-2">
             <div class="d-flex align-items-center"><div class="spinner-border text-primary spinner-border-sm me-3" id="loading-spinner" style="display:none;" role="status"></div><div><span class="text-muted text-uppercase" style="font-size:0.7rem;letter-spacing:1px;" data-i18n="status_label">Statut</span><br><span id="status-text" class="status-text fw-bold text-white">{{ status }}</span></div></div>
-            <div class="text-end"><button onclick="runAnalysis()" class="btn btn-outline-glass btn-sm me-2" id="btn-analyze" data-i18n="btn_analyze">🔍 Analyse BPM</button><button onclick="fetchReportAndShow()" class="btn btn-outline-glass btn-sm" data-i18n="btn_report">📋 Report</button><button onclick="fetchDataAndShowModal()" class="btn btn-outline-glass btn-sm" data-i18n="btn_data">📊 Données</button></div>
+            <div class="text-end"><button onclick="runAnalysis()" class="btn btn-outline-glass btn-sm me-2" id="btn-analyze" data-i18n="btn_analyze">🔍 Analyse BPM (Z-Score)</button><button onclick="fetchReportAndShow()" class="btn btn-outline-glass btn-sm" data-i18n="btn_report">📋 Report</button><button onclick="fetchDataAndShowModal()" class="btn btn-outline-glass btn-sm" data-i18n="btn_data">📊 Données</button></div>
         </div>
         <div class="d-flex justify-content-between text-muted" style="font-size:0.7rem;"><span><span data-i18n="progress">Progression</span>: <span id="progress-percent">0%</span></span><span class="text-info"><span data-i18n="eta">Temps restant</span> : <span id="eta-text" class="fw-bold">--:--</span></span></div>
         <div class="progress-glow"><div id="main-progress-bar" class="progress-bar-glow"></div></div>
@@ -89,107 +109,308 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4"><div class="glass-card"><span class="step-number">1</span><div><h4><span data-i18n="card_import">Import</span> <button class="help-btn" data-bs-toggle="popover" title="Import" data-bs-content="Glissez vos fichiers MP3/WAV ici."><i class="fas fa-circle-question"></i></button> <span class="badge-glass">{{ counts.input }}</span></h4><p class="text-muted" data-i18n="desc_import">Glissez vos fichiers MP3/WAV ici.</p><input type="file" id="fileInput" multiple style="display:none" onchange="uploadFiles()"><button onclick="document.getElementById('fileInput').click()" class="btn btn-dashed w-100 py-2 mb-2" data-i18n="btn_browse">📂 GLISSER OU CHOISIR</button><div id="uploadProgress" class="progress mb-3" style="height:4px;display:none;background:rgba(255,255,255,0.1);"><div class="progress-bar" style="width:100%;background:var(--accent-color);"></div></div><div id="fileListContainer"></div></div><div><button onclick="openPlayer('input')" class="btn btn-outline-glass w-100 mt-2" data-i18n="btn_listen_original">🎧 Écouter l'Original</button></div></div></div>
-        <div class="col-md-4"><div class="glass-card"><span class="step-number">2</span><div><h4>Splitter <button class="help-btn" data-bs-toggle="popover" title="Séparation" data-bs-content="Sépare en pistes.<br>6s: Complet.<br>4s: Standard."><i class="fas fa-circle-question"></i></button> <a href="/download_zip/output" class="text-decoration-none text-white opacity-50 hover-100">⬇️</a></h4><div class="mb-2"><select id="stemMode" class="form-select form-select-sm" style="background:#2c2c2c;color:white;border:1px solid rgba(255,255,255,0.1);"><option value="6s" data-i18n="opt_6s">Mode Complet (6 Pistes)</option><option value="4s" data-i18n="opt_4s">Mode Standard (4 Pistes)</option><option value="2s" data-i18n="opt_2s">Mode Karaoké (2 Pistes)</option></select></div><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="recoveryMode"><label class="form-check-label text-white" for="recoveryMode" style="font-size:0.8rem" data-i18n="opt_density">Densité (Smart Recovery)</label></div><span class="badge-glass mb-3 d-inline-block">{{ counts.output }} <span data-i18n="files">Fichiers</span></span></div><div class="d-grid gap-2"><button onclick="runSplit()" class="btn btn-primary-glow" data-i18n="btn_split">⚡ SÉPARER</button><button onclick="openPlayer('output')" class="btn btn-outline-glass" data-i18n="btn_listen_stems">🎧 Mixeur Stems</button></div></div></div>
-        <div class="col-md-4"><div class="glass-card"><span class="step-number">3</span><div><h4>Cleaner <button class="help-btn" data-bs-toggle="popover" title="Nettoyage" data-bs-content="Supprime le souffle."><i class="fas fa-circle-question"></i></button> <a href="/download_zip/clean" class="text-decoration-none text-white opacity-50 hover-100">⬇️</a></h4><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="hifiMode" checked style="background-color:var(--accent-color);border-color:transparent;"><label class="form-check-label text-white" for="hifiMode" style="font-size:0.8rem" data-i18n="opt_hifi">Mode Hi-Fi</label></div><p class="text-muted" data-i18n="desc_cleaner">Décochez pour nettoyer Suno.</p></div><div class="d-grid gap-2"><button onclick="runClean()" class="btn btn-warning-glow" data-i18n="btn_clean">✨ NETTOYER</button><button onclick="openPlayer('clean')" class="btn btn-outline-glass" data-i18n="btn_listen_clean">🎧 Mixeur Clean</button></div></div></div>
-        <div class="col-md-4"><div class="glass-card"><span class="step-number">4</span><div><h4>Vocal Split <button class="help-btn" data-bs-toggle="popover" title="Vocal" data-bs-content="Lead vs Backing."><i class="fas fa-circle-question"></i></button> <a href="/download_zip/split" class="text-decoration-none text-white opacity-50 hover-100">⬇️</a></h4><p class="text-muted" data-i18n="desc_vocal">Sépare Lead (Chanteur) et Backing.</p><span class="badge-glass mb-3 d-inline-block">{{ counts.split }} <span data-i18n="files">Fichiers</span></span></div><div class="d-grid gap-2"><button onclick="run('vocals')" class="btn btn-danger-glow" data-i18n="btn_vocal">🎤 SPLIT VOIX</button><button onclick="openPlayer('split')" class="btn btn-outline-glass" data-i18n="btn_listen_vocal">🎧 Mixeur Voix</button></div></div></div>
-        <div class="col-md-4"><div class="glass-card"><span class="step-number">5</span><div><h4>De-Reverb <button class="help-btn" data-bs-toggle="popover" title="Reverb" data-bs-content="Supprime l'écho."><i class="fas fa-circle-question"></i></button> <a href="/download_zip/dry" class="text-decoration-none text-white opacity-50 hover-100">⬇️</a></h4><p class="text-muted" data-i18n="desc_reverb">Supprime l'écho des pistes vocales.</p><span class="badge-glass mb-3 d-inline-block">{{ counts.dry }} <span data-i18n="files">Fichiers</span></span></div><div class="d-grid gap-2"><button onclick="run('dereverb')" class="btn btn-info-glow" data-i18n="btn_reverb">🚿 RETIRER REVERB</button><button onclick="openPlayer('dry')" class="btn btn-outline-glass" data-i18n="btn_listen_dry">🎧 Mixeur Dry</button></div></div></div>
-        <div class="col-md-4"><div class="glass-card" style="border-color: rgba(46, 213, 115, 0.3);"><span class="step-number">6</span><div><h4>Mastering <button class="help-btn" data-bs-toggle="popover" title="Master" data-bs-content="Mix final."><i class="fas fa-circle-question"></i></button> <a href="/download_zip/master" class="text-decoration-none text-white opacity-50 hover-100">⬇️</a></h4><p class="text-muted" data-i18n="desc_master">Mixage final, panning et normalisation.</p></div><div class="d-grid gap-2"><button onclick="run('master')" class="btn btn-success-glow" data-i18n="btn_master">🎚️ GÉNÉRER MASTER</button><button onclick="openPlayer('master')" class="btn btn-outline-glass" data-i18n="btn_listen_final">🎧 Écouter Final</button></div></div></div>
+        <div class="col-md-4">
+            <div class="glass-card">
+                <span class="step-number">1</span>
+                <div><h4>Import <span class="badge-glass">{{ counts.input }}</span></h4>
+                <div class="custom-tooltip">Formats supportés: MP3, WAV, FLAC</div>
+                <input type="file" id="fileInput" multiple style="display:none" onchange="uploadFiles()"><button onclick="document.getElementById('fileInput').click()" class="btn btn-dashed w-100 py-2 mb-2">📂 GLISSER OU CHOISIR</button><div id="fileListContainer"></div></div><div><button onclick="openPlayer('input')" class="btn btn-outline-glass w-100 mt-2">🎧 Écouter l'Original</button></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card">
+                <span class="step-number">2</span>
+                <div><h4>Splitter</h4>
+                <div class="custom-tooltip">Sépare la musique en pistes individuelles</div>
+                <div class="mb-2"><select id="stemMode" class="form-select form-select-sm" style="background:#2c2c2c;color:white;border:1px solid rgba(255,255,255,0.1);"><option value="6s">Mode Complet (6 Pistes)</option><option value="4s">Mode Standard (4 Pistes)</option><option value="2s">Mode Karaoké (2 Pistes)</option></select></div><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="recoveryMode"><label class="form-check-label text-white" for="recoveryMode" style="font-size:0.8rem">NUCLEAR WIPE</label></div><span class="badge-glass mb-3 d-inline-block">{{ counts.output }} Fichiers</span></div><div class="d-grid gap-2"><button onclick="runSplit()" class="btn btn-primary-glow">⚡ SÉPARER (V5.0)</button><button onclick="openPlayer('output')" class="btn btn-outline-glass">🎧 Mixeur Stems</button></div>
+            </div>
+        </div>
+        <div class="col-md-4"><div class="glass-card"><span class="step-number">2b</span><div><h4>Drum Lab</h4><div class="custom-tooltip">Kick, Snare, Hi-Hats</div><span class="badge-glass mb-3 d-inline-block">{{ counts.drums }} Fichiers</span></div><div class="d-grid gap-2"><button onclick="run('drum_lab')" class="btn btn-danger-glow">🥁 SPLIT BATTERIE</button><button onclick="openPlayer('drums')" class="btn btn-outline-glass">🎧 Mixeur Drum Kit</button></div></div></div>
+        <div class="col-md-4"><div class="glass-card"><span class="step-number">3</span><div><h4>Cleaner</h4><div class="custom-tooltip">Supprime le bruit de fond</div><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="hifiMode" checked style="background-color:var(--accent-color);border-color:transparent;"><label class="form-check-label text-white" for="hifiMode" style="font-size:0.8rem">Mode Hi-Fi</label></div></div><div class="d-grid gap-2"><button onclick="runClean()" class="btn btn-warning-glow">✨ NETTOYER</button><button onclick="openPlayer('clean')" class="btn btn-outline-glass">🎧 Mixeur Clean</button></div></div></div>
+        <div class="col-md-4"><div class="glass-card"><span class="step-number">3b</span><div><h4>Stem Doctor</h4><div class="custom-tooltip">Répare les fréquences perdues</div></div><div class="d-grid gap-2"><button onclick="run('reconstruct')" class="btn btn-info-glow">🚑 RECONSTRUIRE</button><button onclick="openPlayer('repaired')" class="btn btn-outline-glass">🎧 Mixeur Réparé</button></div></div></div>
+        <div class="col-md-4"><div class="glass-card"><span class="step-number">3c</span><div><h4>MP3 Restore</h4><div class="custom-tooltip">Améliore la qualité (Upscale)</div></div><div class="d-grid gap-2"><button onclick="run('uncompress')" class="btn btn-success-glow">💎 CRYSTALIZE (HQ)</button><button onclick="openPlayer('restored')" class="btn btn-outline-glass">🎧 Mixeur Restoré</button></div></div></div>
+        <div class="col-md-4"><div class="glass-card"><span class="step-number">4</span><div><h4>Vocal Split</h4><div class="custom-tooltip">Isole la voix principale</div><span class="badge-glass mb-3 d-inline-block">{{ counts.split }} Fichiers</span></div><div class="d-grid gap-2"><button onclick="run('vocals')" class="btn btn-danger-glow">🎤 SPLIT VOIX</button><button onclick="openPlayer('split')" class="btn btn-outline-glass">🎧 Mixeur Voix</button></div></div></div>
+        <div class="col-md-4"><div class="glass-card"><span class="step-number">5</span><div><h4>De-Reverb</h4><div class="custom-tooltip">Enlève l'écho de la pièce</div><span class="badge-glass mb-3 d-inline-block">{{ counts.dry }} Fichiers</span></div><div class="d-grid gap-2"><button onclick="run('dereverb')" class="btn btn-info-glow">🚿 RETIRER REVERB</button><button onclick="openPlayer('dry')" class="btn btn-outline-glass">🎧 Mixeur Dry</button></div></div></div>
+        <div class="col-md-4"><div class="glass-card"><span class="step-number">6</span><div><h4>Mastering</h4><div class="custom-tooltip">Finalisation et volume</div></div><div class="d-grid gap-2"><button onclick="run('master')" class="btn btn-success-glow">🎚️ GÉNÉRER MASTER</button><button onclick="openPlayer('master')" class="btn btn-outline-glass">🎧 Écouter Final</button></div></div></div>
     </div>
+    
+    <div class="row g-4 mt-1"><div class="col-md-12"><div class="glass-card d-flex flex-row align-items-center justify-content-between"><div class="d-flex align-items-center"><span class="step-number" style="position:static;font-size:2.5rem;margin-right:20px;opacity:0.1;">7</span><div><h4>Lyrics</h4><p class="text-muted mb-0">Générer les paroles.</p></div></div><div><a href="/download_zip/lyrics" class="btn btn-outline-glass me-2">⬇️ Tout télécharger</a><button onclick="run('lyrics')" class="btn btn-purple-glow">📝 GÉNÉRER PAROLES</button></div></div></div></div>
 
-    <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content glass-card p-4"><div class="modal-header border-bottom-0"><h5 class="modal-title">ℹ️ About</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" style="max-height:60vh;overflow-y:auto;"><h6>Version 2.33</h6><p>Bit Depth Report added.</p></div></div></div></div>
-    <div class="modal fade" id="sessionModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content glass-card p-4 text-center"><h3 class="mb-3" data-i18n="modal_session_title">Session Détectée</h3><p class="text-muted mb-4" data-i18n="modal_session_desc">Des fichiers sont déjà présents.</p><div class="d-grid gap-2"><button onclick="resumeSession()" class="btn btn-success-glow py-3" data-i18n="btn_resume">📂 REPRENDRE</button><button onclick="newSession()" class="btn btn-danger-glow py-3" data-i18n="btn_new_session_modal">🗑️ NOUVELLE SESSION</button></div></div></div></div>
-    <div class="modal fade" id="analysisModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-header border-bottom-0"><h5 class="modal-title">🎹 Analyse</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><table class="table table-dark table-hover mb-0"><thead><tr><th>Fichier</th><th>BPM</th><th>Key</th></tr></thead><tbody id="resultsTableBody"></tbody></table></div></div></div></div>
-    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-header border-bottom-0"><h5 class="modal-title">📋 Rapport Technique</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><table class="table table-dark table-hover mb-0"><thead><tr><th>Fichier</th><th>Format</th><th>Durée</th><th>Qualité</th><th>BPM</th><th>Key</th><th>Tags</th></tr></thead><tbody id="reportTableBody"><tr><td colspan="7" class="text-center">Chargement...</td></tr></tbody></table></div></div></div></div>
-    <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-header border-bottom-0"><h5 class="modal-title" id="playerTitle">🎧 Mixeur Studio</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" style="max-height:80vh;overflow-y:auto;"><div id="loading-audio" class="text-center py-5" style="display:none;"><div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div><p class="mt-3 fs-5">Chargement des pistes...</p></div><div id="mixer-ui" style="display:none;"><div class="global-transport flex-column align-items-center"><div class="d-flex align-items-center w-100 gap-3 mb-2"><button class="play-btn" onclick="togglePlayAll()"><i class="fas fa-play" id="globalPlayIcon"></i></button><button class="nav-btn" id="loopBtn" onclick="toggleLoop()" title="Boucle"><i class="fas fa-repeat"></i></button><div class="flex-grow-1 text-center"><span id="time-display" class="fw-bold fs-4">00:00</span></div></div><div class="d-flex gap-2 w-100 justify-content-center"><button class="nav-btn" onclick="seekAll(0)"><i class="fas fa-step-backward"></i> Début</button><button class="nav-btn" onclick="seekRelative(-10)">-10s</button><button class="nav-btn" onclick="seekRelative(-5)">-5s</button><button class="nav-btn" onclick="seekRelative(5)">+5s</button><button class="nav-btn" onclick="seekRelative(10)">+10s</button></div><small class="text-muted mt-2"><i class="fas fa-keyboard"></i> Espace: Play/Pause | Flèches: Naviguer</small></div><div id="trackList" class="mt-3"></div></div></div><div class="modal-footer border-top-0"><button type="button" class="btn btn-outline-glass btn-sm" onclick="stopAllAudio()" data-bs-dismiss="modal" data-i18n="btn_close">Fermer</button></div></div></div></div>
+    <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-header border-bottom-0"><h5 class="modal-title" id="playerTitle">🎧 Mixeur Studio</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" style="max-height:80vh;overflow-y:auto;">
+        
+        <div id="loading-audio" class="text-center py-5" style="display:none;"><div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div><p class="mt-3 fs-5">Chargement des pistes...</p></div>
+        
+        <div id="mixer-ui" style="display:none;">
+            <div class="global-transport flex-column align-items-center">
+                <div class="d-flex align-items-center w-100 gap-3 mb-2">
+                    <button class="play-btn" onclick="togglePlayAll()"><i class="fas fa-play" id="globalPlayIcon"></i></button>
+                    <button class="nav-btn" id="loopBtn" onclick="toggleLoop()" title="Boucle (Synchronisée)"><i class="fas fa-repeat"></i></button>
+                    <div class="flex-grow-1 text-center"><span id="time-display" class="fw-bold fs-4">00:00 / 00:00</span></div>
+                    <button class="btn btn-outline-glass btn-sm" onclick="downloadAllZip()"><i class="fas fa-download me-2"></i> TOUT (ZIP)</button>
+                </div>
+                <div class="d-flex align-items-center gap-3 w-100 justify-content-center p-2" style="background:rgba(255,255,255,0.05);border-radius:8px;">
+                    <small>Vitesse: <span id="speed-val">1.0x</span></small>
+                    <input type="range" class="form-range" min="0.5" max="1.5" step="0.1" value="1" id="speedRange" oninput="setGlobalSpeed(this.value)" style="width:150px;">
+                    <div class="form-check form-switch ms-3">
+                        <input class="form-check-input" type="checkbox" id="preservePitch" checked onchange="updatePitchSetting()">
+                        <label class="form-check-label" for="preservePitch" style="font-size:0.8rem">Preserve Pitch</label>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 w-100 justify-content-center mt-2">
+                    <button class="nav-btn" onclick="seekAll(0)"><i class="fas fa-step-backward"></i> Début</button>
+                    <button class="nav-btn" onclick="seekRelative(-10)">-10s</button>
+                    <button class="nav-btn" onclick="seekRelative(-5)">-5s</button>
+                    <button class="nav-btn" onclick="seekRelative(5)">+5s</button>
+                    <button class="nav-btn" onclick="seekRelative(10)">+10s</button>
+                </div>
+            </div>
+            <div id="trackList" class="mt-3"></div>
+        </div>
+    </div><div class="modal-footer border-top-0"><button type="button" class="btn btn-outline-glass btn-sm" onclick="stopAllAudio()" data-bs-dismiss="modal">Fermer</button></div></div></div></div>
+    
+    <div class="modal fade" id="sessionModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content glass-card p-4 text-center"><h3 class="mb-3">Session Détectée</h3><p class="text-muted mb-4">Des fichiers sont déjà présents.</p><div class="d-grid gap-2"><button onclick="resumeSession()" class="btn btn-success-glow py-3">📂 REPRENDRE</button><button onclick="newSession()" class="btn btn-danger-glow py-3">🗑️ NOUVELLE SESSION</button></div></div></div></div>
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-header border-bottom-0"><h5 class="modal-title">📋 Rapport</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><table class="table table-dark table-hover mb-0"><thead><tr><th>Fichier</th><th>Format</th><th>Durée</th><th>BPM</th><th>Key</th></tr></thead><tbody id="reportTableBody"></tbody></table></div></div></div></div>
+    <div class="modal fade" id="analysisModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-header border-bottom-0"><h5 class="modal-title">🎹 Analyse (Z-Score)</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><table class="table table-dark table-hover mb-0"><thead><tr><th>Fichier</th><th>BPM (Z-Score Filtered)</th><th>Key</th></tr></thead><tbody id="resultsTableBody"></tbody></table></div></div></div></div>
+    
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card p-4">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title">ℹ️ Changelog & Infos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
+                    <h6>Version 5.3.6 (GOLDEN MASTER)</h6>
+                    <ul>
+                         <li><strong style="color:var(--loop-color)">AUDIO:</strong> Moteur Splitter V5.0 "Bitcrush Killer" actif.</li>
+                         <li><strong style="color:var(--loop-color)">AUDIO:</strong> Stem Doctor "Reconstruction Interpolation" actif.</li>
+                         <li><strong style="color:var(--loop-color)">AUDIO:</strong> Analyzer BPM Z-Score actif.</li>
+                         <li><strong style="color:var(--loop-color)">UI:</strong> Interface "Player Perfect" (Import, Download, Loop fixes).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let analysisModal, playerModal, sessionModal, aboutModal, reportModal;
-        let processStartTime=0; let timerInterval; let surfers=[]; let isLooping=false;
-        const i18n={fr:{app_title:"Universal Audio Studio",app_subtitle:"AI Separation & Mastering",btn_new_session:"🗑️ Nouvelle Session",status_label:"Statut",btn_analyze:"🔍 Analyse BPM",btn_data:"📊 Données",btn_report:"📋 Report",progress:"Progression",eta:"Temps restant",card_import:"Import",desc_import:"Glissez vos fichiers MP3/WAV ici.",btn_browse:"📂 GLISSER OU CHOISIR",btn_listen_original:"🎧 Écouter l'Original",opt_6s:"Mode Complet (6 Pistes)",opt_4s:"Mode Standard (4 Pistes)",opt_2s:"Mode Karaoké (2 Pistes)",opt_density:"Densité (Smart Recovery)",btn_split:"⚡ SÉPARER",btn_listen_stems:"🎧 Mixeur Stems",files:"Fichiers",opt_hifi:"Mode Hi-Fi",desc_cleaner:"Décochez pour nettoyer Suno.",btn_clean:"✨ NETTOYER",btn_listen_clean:"🎧 Mixeur Clean",desc_vocal:"Sépare Lead (Chanteur) et Backing.",btn_vocal:"🎤 SPLIT VOIX",btn_listen_vocal:"🎧 Mixeur Voix",desc_reverb:"Supprime l'écho des pistes vocales.",btn_reverb:"🚿 RETIRER REVERB",btn_listen_dry:"🎧 Mixeur Dry",desc_master:"Mixage final, panning et normalisation.",btn_master:"🎚️ GÉNÉRER MASTER",btn_listen_final:"🎧 Écouter Final",modal_session_title:"Session Détectée",modal_session_desc:"Des fichiers sont déjà présents.",btn_resume:"📂 REPRENDRE",btn_new_session_modal:"🗑️ NOUVELLE SESSION",btn_close:"Fermer"},en:{app_title:"Universal Audio Studio",app_subtitle:"AI Stem Separation & Mastering",btn_new_session:"🗑️ New Session",status_label:"Status",btn_analyze:"🔍 Analyze BPM",btn_data:"📊 Data",btn_report:"📋 Report",progress:"Progress",eta:"Time remaining",card_import:"Import",desc_import:"Drag & Drop MP3/WAV files here.",btn_browse:"📂 BROWSE OR DRAG",btn_listen_original:"🎧 Listen Original",opt_6s:"Full Mode (6 Stems)",opt_4s:"Standard Mode (4 Stems)",opt_2s:"Karaoke Mode (2 Stems)",opt_density:"Density (Smart Recovery)",btn_split:"⚡ SPLIT",btn_listen_stems:"🎧 Stems Mixer",files:"Files",opt_hifi:"Hi-Fi Mode",desc_cleaner:"Uncheck to clean noisy AI audio.",btn_clean:"✨ CLEAN",btn_listen_clean:"🎧 Clean Mixer",desc_vocal:"Separate Lead & Backing Vocals.",btn_vocal:"🎤 SPLIT VOCALS",btn_listen_vocal:"🎧 Vocal Mixer",desc_reverb:"Remove room echo from vocals.",btn_reverb:"🚿 DE-REVERB",btn_listen_dry:"🎧 Dry Mixer",desc_master:"Final mixing, panning & normalization.",btn_master:"🎚️ MASTERING",btn_listen_final:"🎧 Listen Master",modal_session_title:"Session Detected",modal_session_desc:"Files found in workspace.",btn_resume:"📂 RESUME",btn_new_session_modal:"🗑️ NEW SESSION",btn_close:"Close"}};
-        let currentLang=localStorage.getItem('uas_lang')||'fr';
-        function setLang(lang){currentLang=lang;localStorage.setItem('uas_lang',lang);document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.getAttribute('data-i18n');if(i18n[lang][key])el.innerHTML=i18n[lang][key];});document.querySelectorAll('.flag-btn').forEach(btn=>btn.classList.remove('active'));document.querySelector(`.flag-btn[onclick="setLang('${lang}')"]`).classList.add('active');}
-        window.onload=function(){setLang(currentLang);analysisModal=new bootstrap.Modal(document.getElementById('analysisModal'));playerModal=new bootstrap.Modal(document.getElementById('playerModal'));sessionModal=new bootstrap.Modal(document.getElementById('sessionModal'));aboutModal=new bootstrap.Modal(document.getElementById('aboutModal'));reportModal=new bootstrap.Modal(document.getElementById('reportModal'));document.getElementById('playerModal').addEventListener('hidden.bs.modal', stopAllAudio);var popoverTriggerList=[].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));var popoverList=popoverTriggerList.map(function(popoverTriggerEl){return new bootstrap.Popover(popoverTriggerEl,{html:true,trigger:'hover'});});const fileCounts={{counts|tojson}};const totalFiles=Object.values(fileCounts).reduce((a,b)=>a+b,0);const justUploaded=sessionStorage.getItem("justUploaded");if(totalFiles>0&&!justUploaded){sessionModal.show();}sessionStorage.removeItem("justUploaded");refreshFileList();};
+    let analysisModal,playerModal,sessionModal,aboutModal,reportModal;let processStartTime=0;let timerInterval;let surfers=[];let isLooping=false;
+    let currentCategory = ""; 
+    let globalSpeed = 1.0;
+    let maxDuration = 0; 
+    let currentLang=localStorage.getItem('uas_lang')||'fr';
+
+    const translations = {
+        fr: { app_title: "Universal Audio Studio", app_subtitle: "Studio de Traitement Audio IA", btn_new_session: "🗑️ Nouvelle Session", status_label: "Statut", btn_analyze: "🔍 Analyse BPM", btn_report: "📋 Report", btn_data: "📊 Données", progress: "Progression", eta: "Temps restant" },
+        en: { app_title: "Universal Audio Studio", app_subtitle: "AI Audio Processing Studio", btn_new_session: "🗑️ New Session", status_label: "Status", btn_analyze: "🔍 BPM Analyze", btn_report: "📋 Report", btn_data: "📊 Data", progress: "Progress", eta: "Time Left" }
+    };
+
+    function setLang(lang){
+        currentLang=lang;
+        localStorage.setItem('uas_lang',lang);
+        document.getElementById('btn-fr').classList.toggle('active', lang==='fr');
+        document.getElementById('btn-en').classList.toggle('active', lang==='en');
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if(translations[lang][key]) el.textContent = translations[lang][key];
+        });
+    }
+
+    window.onload=function(){
+        analysisModal=new bootstrap.Modal(document.getElementById('analysisModal'));
+        playerModal=new bootstrap.Modal(document.getElementById('playerModal'));
+        sessionModal=new bootstrap.Modal(document.getElementById('sessionModal'));
+        aboutModal=new bootstrap.Modal(document.getElementById('aboutModal'));
+        reportModal=new bootstrap.Modal(document.getElementById('reportModal'));
+        document.getElementById('playerModal').addEventListener('hidden.bs.modal', stopAllAudio);
+        setLang(currentLang);
+        const fileCounts={{counts|tojson}};
+        const totalFiles=Object.values(fileCounts).reduce((a,b)=>a+b,0);
+        const justUploaded=sessionStorage.getItem("justUploaded");
+        if(totalFiles>0&&!justUploaded){sessionModal.show();}
+        sessionStorage.removeItem("justUploaded");
+        refreshFileList();
+    };
+
+    function getTrackInfo(filename){let lower=filename.toLowerCase();let icon="fa-music";let prettyName=filename;let color="#6c757d";if(lower.includes("kick")){icon="fa-circle";prettyName="Kick Drum";color="#e74c3c";}else if(lower.includes("snare")){icon="fa-square";prettyName="Snare Drum";color="#f39c12";}else if(lower.includes("hats")){icon="fa-bahai";prettyName="Hi-Hats";color="#f1c40f";}else if(lower.includes("backing")){icon="fa-users";prettyName="Backing Vocals";color="#a55eea";}else if(lower.includes("vocal")||lower.includes("lead")){icon="fa-microphone";prettyName="Vocals (Lead)";color="#3742fa";}else if(lower.includes("drum")){icon="fa-drum";prettyName="Drums";color="#ff4757";}else if(lower.includes("bass")){icon="fa-bolt";prettyName="Bass";color="#e67e22";}else if(lower.includes("guitar")){icon="fa-guitar";prettyName="Guitar";color="#2ed573";}else if(lower.includes("piano")){icon="fa-keyboard";prettyName="Piano";color="#eccc68";}else if(lower.includes("other")){icon="fa-layer-group";prettyName="Other / Synth";color="#747d8c";}else if(lower.includes("instru")){icon="fa-sliders";prettyName="Instrumental";color="#2f3542";}if(lower.includes("dry_studio"))prettyName+=" [DRY STUDIO]";if(lower.includes("wet_echo"))prettyName+=" [REVERB ONLY]";if(prettyName===filename){prettyName=filename.replace(/\.(wav|mp3|flac)$/i,"").replace(/_/g," ").replace(/-/g," ");if(prettyName.length>20)prettyName=prettyName.substring(0,20)+"...";}return{icon,prettyName,color};}
+    
+    document.addEventListener('keydown', function(e) { 
+        const modal = document.getElementById('playerModal'); 
+        if (modal.classList.contains('show')) { 
+            if (e.code === 'Space') { e.preventDefault(); togglePlayAll(); } 
+            else if (e.code === 'ArrowLeft') { e.preventDefault(); seekRelative(-5); } 
+            else if (e.code === 'ArrowRight') { e.preventDefault(); seekRelative(5); }
+            else if (e.code === 'KeyL') { e.preventDefault(); toggleLoop(); }
+        } 
+    });
+
+    function showAbout(){aboutModal.show();}
+    function resumeSession(){sessionModal.hide();}
+    function newSession(){fetch('/clear_data',{method:'POST'}).then(r=>r.json()).then(d=>{location.reload();});}
+    function runAnalysis(){document.getElementById('btn-analyze').innerText="Loading...";run('analyze');}
+    function fetchDataAndShowModal(){fetch('/get_analysis').then(r=>r.json()).then(d=>{let tbody=document.getElementById('resultsTableBody');tbody.innerHTML="";if(d.length===0||d[0].name==="Aucune donnée"){tbody.innerHTML="<tr><td colspan='3'>No data.</td></tr>";}else{d.forEach(row=>{tbody.innerHTML+=`<tr><td>${row.name}</td><td style="color:#2ed573">${row.bpm}</td><td style="color:#ffa502">${row.key}</td></tr>`;});}analysisModal.show();});}
+    function fetchReportAndShow(){reportModal.show();fetch('/get_tech_report').then(r=>r.json()).then(data=>{let tbody=document.getElementById('reportTableBody');tbody.innerHTML="";if(data.length===0){tbody.innerHTML="<tr><td colspan='7' class='text-center'>No files.</td></tr>";return;}data.forEach(item=>{let html=`<tr><td class="fw-bold">${item.filename}</td><td><span class="badge bg-secondary">${item.format}</span></td><td>${item.duration}</td><td class="tech-info">${item.bitrate}/${item.sample_rate}/${item.channels}</td><td class="fw-bold" style="color:#2ed573">${item.bpm}</td><td class="fw-bold" style="color:#ffa502">${item.key}</td><td class="tag-info">${item.tags.title} - ${item.tags.artist}</td></tr>`;tbody.innerHTML+=html;});});}
+    function run(action){processStartTime=Date.now();fetch('/action/'+action,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);});startTimer();}
+    function runClean(){processStartTime=Date.now();let mode=document.getElementById('hifiMode').checked?'hifi':'suno';fetch('/action/clean',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:mode})}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);});startTimer();}
+    function runSplit(){processStartTime=Date.now();let rec=document.getElementById('recoveryMode').checked;let mode=document.getElementById('stemMode').value;fetch('/action/split',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recovery:rec,stems:mode})}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);});startTimer();}
+    
+    // --- FONCTION UPLOAD CORRIGÉE ---
+    function uploadFiles(){
+        let input=document.getElementById('fileInput');
+        if(input.files.length===0)return;
+        let formData=new FormData();
+        for(let i=0;i<input.files.length;i++)formData.append('files[]',input.files[i]);
         
-        // --- UI V2.33 ---
-        function getTrackInfo(filename) {
-            let lower = filename.toLowerCase();
-            let icon = "fa-music"; let prettyName = filename; let color = "#6c757d";
-
-            if(lower.includes("backing")) { icon="fa-users"; prettyName="Backing Vocals"; color="#a55eea"; }
-            else if(lower.includes("vocal")||lower.includes("lead")) { icon="fa-microphone"; prettyName="Vocals (Lead)"; color="#3742fa"; }
-            else if(lower.includes("drum")) { icon="fa-drum"; prettyName="Drums"; color="#ff4757"; }
-            else if(lower.includes("bass")) { icon="fa-bolt"; prettyName="Bass"; color="#e67e22"; }
-            else if(lower.includes("guitar")) { icon="fa-guitar"; prettyName="Guitar"; color="#2ed573"; }
-            else if(lower.includes("piano")) { icon="fa-keyboard"; prettyName="Piano"; color="#eccc68"; }
-            else if(lower.includes("other")) { icon="fa-layer-group"; prettyName="Other"; color="#747d8c"; }
-            else if(lower.includes("instru")) { icon="fa-sliders"; prettyName="Instrumental"; color="#2f3542"; }
-
-            if(lower.includes("dry")) { prettyName += " 🌟 [DRY]"; color = "#2ecc71"; }
-            else if(lower.includes("wet") || lower.includes("echo")) { prettyName += " 💧 [ECHO]"; color = "#3498db"; }
-
-            if(prettyName===filename){
-                 prettyName=filename.replace(/\.(wav|mp3|flac)$/i,"").replace(/_/g," ").replace(/-/g," ");
-                 if(prettyName.length>25)prettyName=prettyName.substring(0,25)+"...";
-            }
-            return { icon, prettyName, color };
-        }
-
-        document.addEventListener('keydown', function(e) { const modal = document.getElementById('playerModal'); if (modal.classList.contains('show')) { if (e.code === 'Space') { e.preventDefault(); togglePlayAll(); } else if (e.code === 'ArrowLeft') { e.preventDefault(); seekRelative(-5); } else if (e.code === 'ArrowRight') { e.preventDefault(); seekRelative(5); } } });
-        function showAbout(){aboutModal.show();}
-        function resumeSession(){sessionModal.hide();}
-        function newSession(){fetch('/clear_data',{method:'POST'}).then(r=>r.json()).then(d=>{location.reload();});}
-        function runAnalysis(){document.getElementById('btn-analyze').innerText="Loading...";run('analyze');}
-        function fetchDataAndShowModal(){fetch('/get_analysis').then(r=>r.json()).then(d=>{let tbody=document.getElementById('resultsTableBody');tbody.innerHTML="";if(d.length===0||d[0].name==="Aucune donnée"){tbody.innerHTML="<tr><td colspan='3'>No data.</td></tr>";}else{d.forEach(row=>{tbody.innerHTML+=`<tr><td>${row.name}</td><td style="color:#2ed573">${row.bpm}</td><td style="color:#ffa502">${row.key}</td></tr>`;});}analysisModal.show();});}
+        let spinner = document.getElementById('loading-spinner');
+        let statusText = document.getElementById('status-text');
         
-        // REPORT UPDATED FOR BIT DEPTH
-        function fetchReportAndShow(){
-            reportModal.show();
-            fetch('/get_tech_report').then(r=>r.json()).then(data=>{
-                let tbody=document.getElementById('reportTableBody');
-                tbody.innerHTML="";
-                if(data.length===0){tbody.innerHTML="<tr><td colspan='7' class='text-center'>No files.</td></tr>";return;}
-                data.forEach(item=>{
-                    let quality = `${item.bitrate} / ${item.sample_rate} / ${item.bit_depth} / ${item.channels}`;
-                    let html=`
-                    <tr>
-                        <td class="fw-bold">${item.filename}</td>
-                        <td><span class="badge bg-secondary">${item.format}</span></td>
-                        <td>${item.duration}</td>
-                        <td class="tech-info">${quality}</td>
-                        <td class="fw-bold" style="color:#2ed573">${item.bpm}</td>
-                        <td class="fw-bold" style="color:#ffa502">${item.key}</td>
-                        <td class="tag-info">${item.tags.title} - ${item.tags.artist}</td>
-                    </tr>`;
-                    tbody.innerHTML+=html;
-                });
+        if(spinner) spinner.style.display='block';
+        if(statusText) statusText.innerText="Importation...";
+
+        fetch('/upload',{method:'POST',body:formData})
+            .then(r=>r.json())
+            .then(d=>{
+                sessionStorage.setItem("justUploaded","true");
+                location.reload();
+            })
+            .catch(e => {
+                alert("Erreur upload: " + e);
+                if(spinner) spinner.style.display='none';
             });
-        }
+    }
 
-        function run(action){processStartTime=Date.now();fetch('/action/'+action,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);});startTimer();}
-        function runClean(){processStartTime=Date.now();let mode=document.getElementById('hifiMode').checked?'hifi':'suno';fetch('/action/clean',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:mode})}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);});startTimer();}
-        function runSplit(){processStartTime=Date.now();let rec=document.getElementById('recoveryMode').checked;let mode=document.getElementById('stemMode').value;fetch('/action/split',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recovery:rec,stems:mode})}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);});startTimer();}
-        function uploadFiles(){let input=document.getElementById('fileInput');if(input.files.length===0)return;let formData=new FormData();for(let i=0;i<input.files.length;i++)formData.append('files[]',input.files[i]);document.getElementById('uploadProgress').style.display='flex';document.getElementById('status-text').innerText="Uploading...";fetch('/upload',{method:'POST',body:formData}).then(r=>r.json()).then(d=>{sessionStorage.setItem("justUploaded","true");location.reload();}).finally(()=>{document.getElementById('uploadProgress').style.display='none';});}
-        function refreshFileList(){fetch('/list_files/input').then(r=>r.json()).then(files=>{const list=document.getElementById('fileListContainer');if(!list)return;list.innerHTML="";if(files.length===0){list.innerHTML="<small class='text-muted d-block text-center'>No files.</small>";}else{files.forEach(f=>{list.innerHTML+=`<div class='file-badge'><i class='fas fa-music me-2'></i>${f}</div>`;});}});}
-        function confirmReset(){if(confirm("Reset Session?")){fetch('/clear_data',{method:'POST'}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);else location.reload();});}}
-        async function openPlayer(category){document.getElementById('playerTitle').innerText="🎧 Mixer : "+category.toUpperCase();document.getElementById('loading-audio').style.display='block';document.getElementById('mixer-ui').style.display='none';playerModal.show();stopAllAudio();surfers=[];const res=await fetch('/list_files/'+category);const files=await res.json();if(files.length===0){document.getElementById('loading-audio').innerHTML="<p>No files.</p>";return;}files.sort();renderTracks(files,category);}
-        function renderTracks(files,category){const container=document.getElementById('trackList');container.innerHTML="";files.forEach((file,index)=>{const info=getTrackInfo(file);let html=`<div class="track-row" style="border-left-color:${info.color}"><div class="track-icon-container" style="background:${info.color}40;color:${info.color}"><i class="fas ${info.icon}"></i></div><div class="track-info"><div class="track-pretty-name">${info.prettyName}</div><div class="track-filename">${file}</div><input type="range" min="0" max="1.2" step="0.1" value="1" oninput="setVolume(${index},this.value)" style="width:100%;height:3px;margin-top:5px;"></div><div class="track-wave" id="waveform-${index}"></div><div class="track-controls"><div class="btn-control" onclick="toggleMute(${index})" id="btn-m-${index}">M</div><div class="btn-control" onclick="toggleSolo(${index})" id="btn-s-${index}">S</div><a href="/download/${category}/${file}" class="btn-control"><i class="fas fa-download"></i></a></div></div>`;container.innerHTML+=html;});setTimeout(()=>{files.forEach((file,index)=>{const info=getTrackInfo(file);const ws=WaveSurfer.create({container:`#waveform-${index}`,waveColor:info.color,progressColor:'white',cursorColor:'white',barWidth:2,barGap:1,height:50,normalize:true,interact:true});ws.load(`/audio/${category}/${file}`);ws.on('ready',()=>{if(index===files.length-1){document.getElementById('loading-audio').style.display='none';document.getElementById('mixer-ui').style.display='block';}});ws.on('interaction',(newTime)=>{surfers.forEach(s=>{if(s.ws!==ws)s.ws.setTime(newTime);});updateTimeDisplay();});ws.on('finish',()=>{setTimeout(()=>{if(isLooping&&index===0){seekAll(0);togglePlayAll();}else if(!isLooping&&index===0){stopAllAudio();}},10);});surfers.push({id:index,ws:ws,muted:false,solo:false,gain:1});});},100);}
-        function toggleLoop(){isLooping=!isLooping;document.getElementById('loopBtn').classList.toggle('active-loop');}
-        function togglePlayAll(){if(!surfers.length)return;const isPlaying=surfers[0].ws.isPlaying();const icon=document.getElementById('globalPlayIcon');surfers.forEach(s=>isPlaying?s.ws.pause():s.ws.play());if(isPlaying){icon.className="fas fa-play";}else{icon.className="fas fa-pause";updateTimeDisplay();}}
-        function stopAllAudio(){surfers.forEach(s=>{s.ws.stop();});if(document.getElementById('globalPlayIcon'))document.getElementById('globalPlayIcon').className="fas fa-play";updateTimeDisplay();}
-        function seekAll(time){surfers.forEach(s=>{const dur=s.ws.getDuration();if(dur>0)s.ws.seekTo(time/dur);});updateTimeDisplay();}
-        function seekRelative(seconds){if(!surfers.length)return;const current=surfers[0].ws.getCurrentTime();let target=current+seconds;if(target<0)target=0;const duration=surfers[0].ws.getDuration();if(duration>0)seekAll(target);}
-        function updateTimeDisplay(){if(!surfers.length)return;const curr=surfers[0].ws.getCurrentTime();let m=Math.floor(curr/60);let s=Math.floor(curr%60);document.getElementById('time-display').innerText=`${m}:${s<10?'0':''}${s}`;if(surfers[0].ws.isPlaying())requestAnimationFrame(updateTimeDisplay);}
-        function setVolume(index,val){surfers[index].gain=val;updateGain(surfers[index]);}
-        function toggleMute(index){let s=surfers[index];s.muted=!s.muted;document.getElementById(`btn-m-${index}`).classList.toggle('active-mute');updateAllGains();}
-        function toggleSolo(index){let s=surfers[index];s.solo=!s.solo;document.getElementById(`btn-s-${index}`).classList.toggle('active-solo');updateAllGains();}
-        function updateAllGains(){const soloActive=surfers.some(s=>s.solo);surfers.forEach(s=>updateGain(s,soloActive));}
-        function updateGain(s,soloActive=false){if(soloActive){s.ws.setVolume(s.solo?s.gain:0);}else{s.ws.setVolume(s.muted?0:s.gain);}}
-        function formatTime(ms){if(!isFinite(ms)||ms<0)return"--:--";let seconds=Math.floor(ms/1000);let minutes=Math.floor(seconds/60);seconds=seconds%60;return(minutes<10?"0":"")+minutes+":"+(seconds<10?"0":"")+seconds;}
-        function startTimer(){processStartTime=Date.now();if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{let elapsed=Date.now()-processStartTime;document.getElementById('eta-text').innerText=formatTime(elapsed)+" écoulé";},1000);}
-        function stopTimer(){if(timerInterval)clearInterval(timerInterval);}
-        setInterval(()=>{fetch('/status').then(r=>r.json()).then(data=>{document.getElementById('status-text').innerText=data.status+(data.sub_step?" | "+data.sub_step:"");let spinner=document.getElementById('loading-spinner');spinner.style.display=data.processing?'block':'none';let pb=document.getElementById('main-progress-bar');let pc=document.getElementById('progress-percent');if(data.processing){pb.style.width=data.progress+"%";pc.innerText=data.progress+"%";}else{stopTimer();if(pb.style.width!="0%"){setTimeout(()=>{pb.style.width="0%";pc.innerText="0%";},2000);}}if(data.sys){document.getElementById('cpu-val').innerText=Math.round(data.sys.cpu)+"%";document.getElementById('cpu-bar').style.width=data.sys.cpu+"%";document.getElementById('ram-val').innerText=Math.round(data.sys.ram)+"%";document.getElementById('ram-bar').style.width=data.sys.ram+"%";if(data.sys.has_gpu){document.getElementById('gpu-val').innerText=Math.round(data.sys.gpu)+"%";document.getElementById('gpu-bar').style.width=data.sys.gpu+"%";}else{document.getElementById('gpu-val').innerText="N/A";}}if(!data.processing&&isAnalyzing&&data.status.includes("Analyse terminée")){isAnalyzing=false;fetchDataAndShowModal();}});},1000);
+    function refreshFileList(){fetch('/list_files/input').then(r=>r.json()).then(files=>{const list=document.getElementById('fileListContainer');if(!list)return;list.innerHTML="";if(files.length===0){list.innerHTML="<small class='text-muted d-block text-center'>No files.</small>";}else{files.forEach(f=>{list.innerHTML+=`<div class='file-badge'><i class='fas fa-music me-2'></i>${f}</div>`;});}});}
+    function confirmReset(){if(confirm("Reset Session?")){fetch('/clear_data',{method:'POST'}).then(r=>r.json()).then(d=>{if(d.error)alert(d.error);else location.reload();});}}
+    
+    async function openPlayer(category){
+        currentCategory = category;
+        document.getElementById('playerTitle').innerText="🎧 Mixer : "+category.toUpperCase();
+        document.getElementById('loading-audio').style.display='block';
+        document.getElementById('mixer-ui').style.display='none';
+        playerModal.show();
+        stopAllAudio();
+        surfers=[];
+        const res=await fetch('/list_files/'+category);
+        const files=await res.json();
+        if(files.length===0){document.getElementById('loading-audio').innerHTML="<p>No files.</p>";return;}
+        files.sort();
+        renderTracks(files,category);
+    }
+    
+    function renderTracks(files,category){
+        const container=document.getElementById('trackList');container.innerHTML="";
+        files.forEach((file,index)=>{
+            const info=getTrackInfo(file);
+            let encodedFile=encodeURIComponent(file);
+            let html=`<div class="track-row" style="border-left-color:${info.color}"><div class="track-icon-container" style="background:${info.color}40;color:${info.color}"><i class="fas ${info.icon}"></i></div><div class="track-info"><div class="track-pretty-name">${info.prettyName}</div><div class="track-filename">${file}</div><input type="range" min="0" max="1.2" step="0.1" value="1" oninput="setVolume(${index},this.value)" style="width:100%;height:3px;margin-top:5px;"></div><div class="track-wave" id="waveform-${index}"></div><div class="track-controls"><div class="btn-control" onclick="toggleMute(${index})" id="btn-m-${index}">M</div><div class="btn-control" onclick="toggleSolo(${index})" id="btn-s-${index}">S</div><button onclick="downloadSingle('${category}', '${encodedFile}')" class="btn-control"><i class="fas fa-download"></i></button></div></div>`;
+            container.innerHTML+=html;
+        });
+        
+        let loadedCount = 0;
+        maxDuration = 0;
+        
+        files.forEach((file,index)=>{
+            const info=getTrackInfo(file);
+            const ws=WaveSurfer.create({
+                container:`#waveform-${index}`,
+                waveColor:info.color,
+                progressColor:'white',
+                cursorColor:'white',
+                barWidth:2,
+                barGap:1,
+                height:50,
+                normalize:true,
+                interact:true
+            });
+            ws.load(`/audio/${category}/${encodeURIComponent(file)}`);
+            
+            ws.on('ready',()=>{
+                loadedCount++;
+                const d = ws.getDuration();
+                if(d > maxDuration) maxDuration = d; 
+                if(loadedCount===files.length){
+                    document.getElementById('loading-audio').style.display='none';
+                    document.getElementById('mixer-ui').style.display='block';
+                    setupMasterLoop();
+                }
+            });
+            
+            ws.on('interaction',(newTime)=>{
+                surfers.forEach(s=>{if(s.ws!==ws)s.ws.setTime(newTime);});
+                updateTimeDisplay();
+            });
+            surfers.push({id:index, ws:ws, muted:false, solo:false, gain:1});
+        });
+    }
+
+    function downloadAllZip() { if(currentCategory) window.open(`/download_zip/${currentCategory}`, '_blank'); }
+    function downloadSingle(cat, file) { window.open(`/download/${cat}/${file}`, '_blank'); }
+
+    function setupMasterLoop() {
+        let masterIdx = 0; let maxD = 0;
+        surfers.forEach((s, idx) => { if(s.ws.getDuration() > maxD) { maxD = s.ws.getDuration(); masterIdx = idx; } });
+        surfers[masterIdx].ws.on('finish', () => {
+            if(isLooping) { seekAll(0); surfers.forEach(s => s.ws.play()); } else { stopAllAudio(); }
+        });
+    }
+    
+    function toggleLoop(){ isLooping=!isLooping; document.getElementById('loopBtn').classList.toggle('active-loop'); }
+    
+    function togglePlayAll(){
+        if(!surfers.length)return;
+        const isPlaying=surfers[0].ws.isPlaying();
+        const icon=document.getElementById('globalPlayIcon');
+        surfers.forEach(s => isPlaying ? s.ws.pause() : s.ws.play());
+        if(isPlaying){ icon.className="fas fa-play"; } else{ icon.className="fas fa-pause"; updateTimeDisplay(); }
+    }
+    
+    function stopAllAudio(){
+        surfers.forEach(s=>{s.ws.stop();});
+        if(document.getElementById('globalPlayIcon')) document.getElementById('globalPlayIcon').className="fas fa-play";
+        updateTimeDisplay();
+    }
+    
+    function seekAll(time){ surfers.forEach(s=>{ const dur=s.ws.getDuration(); if(dur>0)s.ws.seekTo(time/dur); }); updateTimeDisplay(); }
+    function seekRelative(seconds){
+        if(!surfers.length)return;
+        const current=surfers[0].ws.getCurrentTime();
+        let target=current+seconds;
+        if(target<0)target=0;
+        if(target > maxDuration) target = maxDuration;
+        seekAll(target);
+    }
+    
+    function updateTimeDisplay(){
+        if(!surfers.length)return;
+        const curr=surfers[0].ws.getCurrentTime();
+        document.getElementById('time-display').innerText=`${formatTime(curr*1000)} / ${formatTime(maxDuration*1000)}`;
+        if(surfers[0].ws.isPlaying()) requestAnimationFrame(updateTimeDisplay);
+    }
+    
+    function setVolume(index,val){ surfers[index].gain=val; updateGain(surfers[index]); }
+    function toggleMute(index){
+        let s=surfers[index]; s.muted=!s.muted;
+        if(s.muted && s.solo) { s.solo = false; document.getElementById(`btn-s-${index}`).classList.remove('active-solo'); }
+        document.getElementById(`btn-m-${index}`).classList.toggle('active-mute');
+        updateAllGains();
+    }
+    function toggleSolo(index){
+        let s=surfers[index]; s.solo=!s.solo;
+        if(s.solo && s.muted) { s.muted = false; document.getElementById(`btn-m-${index}`).classList.remove('active-mute'); }
+        document.getElementById(`btn-s-${index}`).classList.toggle('active-solo');
+        updateAllGains();
+    }
+    function updateAllGains(){ const soloActive=surfers.some(s=>s.solo); surfers.forEach(s=>updateGain(s,soloActive)); }
+    function updateGain(s,soloActive=false){ if(soloActive){ s.ws.setVolume(s.solo ? s.gain : 0); } else { s.ws.setVolume(s.muted ? 0 : s.gain); } }
+    function setGlobalSpeed(val) { globalSpeed = parseFloat(val); document.getElementById('speed-val').innerText = globalSpeed + "x"; applySpeedPitch(); }
+    function updatePitchSetting() { applySpeedPitch(); }
+    function applySpeedPitch() { const preserve = document.getElementById('preservePitch').checked; surfers.forEach(s => { s.ws.setPlaybackRate(globalSpeed, preserve); }); }
+
+    function formatTime(ms){if(!isFinite(ms)||ms<0)return"00:00";let seconds=Math.floor(ms/1000);let minutes=Math.floor(seconds/60);seconds=seconds%60;return(minutes<10?"0":"")+minutes+":"+(seconds<10?"0":"")+seconds;}
+    function startTimer(){processStartTime=Date.now();if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{let elapsed=Date.now()-processStartTime;document.getElementById('eta-text').innerText=formatTime(elapsed)+" écoulé";},1000);}
+    function stopTimer(){if(timerInterval)clearInterval(timerInterval);}
+    
+    setInterval(()=>{fetch('/status').then(r=>r.json()).then(data=>{document.getElementById('status-text').innerText=data.status+(data.sub_step?" | "+data.sub_step:"");let spinner=document.getElementById('loading-spinner');spinner.style.display=data.processing?'block':'none';let pb=document.getElementById('main-progress-bar');let pc=document.getElementById('progress-percent');if(data.processing){pb.style.width=data.progress+"%";pc.innerText=data.progress+"%";}else{stopTimer();if(pb.style.width!="0%"){setTimeout(()=>{pb.style.width="0%";pc.innerText="0%";},2000);}}if(data.sys){document.getElementById('cpu-val').innerText=Math.round(data.sys.cpu)+"%";document.getElementById('cpu-bar').style.width=data.sys.cpu+"%";document.getElementById('ram-val').innerText=Math.round(data.sys.ram)+"%";document.getElementById('ram-bar').style.width=data.sys.ram+"%";if(data.sys.has_gpu){document.getElementById('gpu-val').innerText=Math.round(data.sys.gpu)+"%";document.getElementById('gpu-bar').style.width=data.sys.gpu+"%";}else{document.getElementById('gpu-val').innerText="N/A";}}if(!data.processing&&isAnalyzing&&data.status.includes("Analyse terminée")){isAnalyzing=false;fetchDataAndShowModal();}});},1000);
     </script>
 </body>
 </html>

@@ -1,24 +1,26 @@
 import os
 import numpy as np
 import noisereduce as nr
-from scipy.io import wavfile
+import soundfile as sf
 from scipy.signal import butter, lfilter
-from pydub import AudioSegment
 INPUT="Output"; OUTPUT="Cleaned_Master"
-def low_pass(data,c,fs): b,a=butter(5,c/(0.5*fs),btype='low',analog=False); return lfilter(b,a,data)
 def clean_file(path,out_path,mode):
-    audio=AudioSegment.from_file(path).set_frame_rate(44100); samples=np.array(audio.get_array_of_samples())
-    if audio.channels==2: samples=samples.reshape((-1,2))
-    prop=0.7 if mode=='suno' else 0.15; stat=False if mode=='suno' else True
     try:
-        reduced=nr.reduce_noise(y=samples.T if audio.channels==2 else samples,sr=44100,prop_decrease=prop,stationary=stat); data=reduced.T if audio.channels==2 else reduced
-    except: data=samples
-    if mode=='suno':
-        try:
-            if audio.channels==2: l=low_pass(data[:,0],17000,44100); r=low_pass(data[:,1],17000,44100); data=np.column_stack((l,r))
-            else: data=low_pass(data,17000,44100)
-        except: pass
-    wavfile.write(out_path,44100,data.astype(np.int16))
+        data, sr = sf.read(path)
+        prop=0.7 if mode=='suno' else 0.15
+        stat=False if mode=='suno' else True
+        if data.ndim > 1: data = data.T
+        reduced = nr.reduce_noise(y=data, sr=sr, prop_decrease=prop, stationary=stat)
+        if data.ndim > 1: reduced = reduced.T
+        if mode=='suno':
+            b, a = butter(5, 17000/(0.5*sr), btype='low')
+            if reduced.ndim > 1:
+                l = lfilter(b, a, reduced[:,0]); r = lfilter(b, a, reduced[:,1]); reduced = np.column_stack((l,r))
+            else: reduced = lfilter(b, a, reduced)
+        mx = np.max(np.abs(reduced))
+        if mx > 1.0: reduced = reduced * (0.98 / mx)
+        sf.write(out_path, reduced, sr, subtype='PCM_24')
+    except Exception as e: print(e)
 def batch_clean(mode='hifi',progress_callback=None):
     if not os.path.exists(OUTPUT): os.makedirs(OUTPUT)
     files=[f for f in os.listdir(INPUT) if f.endswith('.wav')]; total=len(files)
