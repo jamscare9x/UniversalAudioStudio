@@ -60,12 +60,21 @@ Découpe votre musique en pistes individuelles (Stems).
 * **Mode 6 Pistes :** Drums, Bass, Guitar, Piano, Vocals, Other.
 * **Mode 4 Pistes :** Drums, Bass, Vocals, Other.
 * **Mode Karaoké :** Sépare juste l'Instrumental et la Voix.
-* **Option "Densité" :** Cochez pour réparer les "trous" de fréquences (son plus riche, mais traitement plus long).
+* **Option "NUCLEAR WIPE" :** Cochez pour réparer les "trous" de fréquences (son plus riche, mais traitement plus long).
+
+### 2b. Drumlab (Séparation des drums)
+Kick, Snare, Hi-hat
 
 ### 3. Cleaner (Nettoyage)
 Supprime le souffle.
 * **Mode Hi-Fi (Recommandé) :** Nettoyage doux.
 * **Mode Suno :** Nettoyage agressif (coupe > 16kHz) pour les sons générés par IA.
+
+### 3b. Stem doctor
+Répare les dropouts des stem après séparation
+
+### 3c. MP3 restore
+Répare les dégats causés par le compression MP3,MP4, ou autre
 
 ### 4. Vocal Split
 Divise la piste voix en deux : **Lead** (Chanteur principal) et **Backing** (Chœurs).
@@ -75,6 +84,10 @@ Supprime l'écho de la pièce sur les voix pour un son "studio sec" (Dry).
 
 ### 6. Mastering
 Remixe automatiquement les pistes, applique un panoramique (stéréo) et normalise le volume.
+
+### 7. Lyrics
+Essaie de determiner les lyrics d'un morceau
+
 
 ---
 
