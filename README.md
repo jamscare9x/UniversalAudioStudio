@@ -38,17 +38,6 @@ Cette version intègre des moteurs audio entièrement réécrits pour corriger l
 
 ## 📦 Installation
 
-### Pré-requis
-1.  **Python 3.10+** installé.
-2.  **FFmpeg** installé et ajouté au PATH système (Requis par `pydub`).
-
-### Dépendances
-Installez les bibliothèques nécessaires via pip :
-
-```bash
-pip install flask pywebview psutil numpy scipy librosa soundfile audio-separator pydub noisereduce mutagen openai-whisper torch onnxruntime
----
-
 ## ⚠️ PRÉ-REQUIS (À LIRE AVANT D'INSTALLER)
 
 Pour que le traitement audio fonctionne, votre ordinateur doit disposer de deux outils système essentiels.
@@ -57,6 +46,13 @@ Pour que le traitement audio fonctionne, votre ordinateur doit disposer de deux 
 Cet outil a été conçu spécifiquement pour **Python 3.10**. Les versions plus récentes (3.11, 3.12) peuvent poser problème avec certaines bibliothèques audio.
 * 📥 [Télécharger Python 3.10.11](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
 * 🛑 **IMPORTANT :** Lors de l'installation, cochez impérativement la case **"Add Python 3.10 to PATH"** en bas de la fenêtre.
+
+### Dépendances
+Installez les bibliothèques nécessaires via pip :
+
+```bash
+pip install flask pywebview psutil numpy scipy librosa soundfile audio-separator pydub noisereduce mutagen openai-whisper torch onnxruntime
+```
 
 ### 2. FFmpeg (Le Convertisseur)
 C'est le "couteau suisse" qui permet de lire et écrire les fichiers MP3/WAV. Sans lui, l'application ne pourra pas ouvrir vos fichiers.
@@ -146,6 +142,7 @@ Lorsque la fenêtre de lecture (visualiseur d'onde) est ouverte :
 * **Frontend :** HTML5, Glassmorphism CSS, WaveSurfer.js
 * **Audio AI :** Torch, Demucs v4 (Hybrid Transformer), MDX-Net (UVR)
 * **Wrapper :** PyWebview (Standalone Window)
+
 
 
 
