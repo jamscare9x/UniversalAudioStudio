@@ -33,8 +33,8 @@ Cette version intègre des moteurs audio entièrement réécrits pour corriger l
 | **Confidentialité**| **100% Local (Offline)** | Upload Cloud requis | Local |
 | **Vitesse** | Lente (Focus Qualité) | Très Rapide | Temps Réel (10ms) |
 | **Coût** | **Gratuit** | Abonnement | Licence Logiciel |
-| **Artefacts** | Minimes (grâce au Bitcrush Killer) | Audibles (compression) | Fréquents (Son "phasé" ou "aquatique") |
-| **Densité Spectrale** | ~99.8% (Spectre complet) | ~85% (Perte dans les aigus) | ~70-80% (Coupures pour la vitesse) |
+| **Artefacts** | **Minimes (grâce au Bitcrush Killer)** | Audibles (compression) | Fréquents (Son "phasé" ou "aquatique") |
+| **Densité Spectrale** | **~99.8% (Spectre complet)** | ~85% (Perte dans les aigus) | ~70-80% (Coupures pour la vitesse) |
 
 ---
 
@@ -195,6 +195,7 @@ Ce projet est un "GUI Wrapper" et un pipeline d'amélioration pour plusieurs tec
 * OpenAI Whisper pour la transcription des paroles.
 
 **Licence :** MIT License. Vous êtes libre de modifier et distribuer.
+
 
 
 
