@@ -1,9 +1,52 @@
-# 🎛️ Universal Audio Studio
+# 🎵 Universal Audio Studio (v5.3.6 - Golden Master)
 
-![Version](https://img.shields.io/badge/version-1.0.49-blue) ![Python](https://img.shields.io/badge/Python-3.10-yellow) ![Status](https://img.shields.io/badge/Status-Stable-green)
+> **The Audiophile's Offline Swiss Army Knife.** > *Qualité Studio. Traitement Local. Zéro Compression.*
 
-**Universal Audio Studio** est une station de travail audio (DAW) autonome alimentée par l'IA. Elle permet de déconstruire, nettoyer, remixer et masteriser n'importe quel fichier audio via une interface moderne.
+![Version](https://img.shields.io/badge/version-5.3.6_Golden_Master-blue) ![Python](https://img.shields.io/badge/python-3.10%2B-yellow) ![License](https://img.shields.io/badge/license-MIT-green)
 
+**Universal Audio Studio** est une suite de post-production audio alimentée par l'IA, conçue pour fonctionner **localement** (sans cloud). Contrairement aux outils en ligne qui compressent l'audio pour la vitesse, ou aux logiciels DJ qui sacrifient la qualité pour la latence, ce projet vise la **fidélité audio absolue** (WAV 24-bit/float).
+
+---
+
+## 🌟 Nouveautés de la v5.3.6 (Golden Master)
+
+Cette version intègre des moteurs audio entièrement réécrits pour corriger les défauts historiques de la séparation par IA (artefacts métalliques, trous dans le spectre).
+
+### 🛠️ Moteurs Exclusifs
+| Module | Technologie / Algorithme | Fonction |
+| :--- | :--- | :--- |
+| **Splitter V5** | **"Bitcrush Killer"** | Utilise un *lissage gaussien* sur les masques de séparation flous (Fuzzy Logic) pour éliminer le son métallique sur les guitares et pianos. |
+| **Vocal Doctor** | **Inpainting Cubique** | Répare les micro-coupures (<50ms) et les zéros numériques dans les voix par interpolation mathématique (`scipy`). |
+| **Auto-Remaster** | **AutoMixer Multipiste** | Mixage dynamique des stems (Pan/Vol) via `pydub` suivi d'une normalisation LUFS et d'un Limiteur Brickwall. |
+| **Drum Lab** | **Crossover DSP** | Sépare Kick/Snare/Hats en utilisant des filtres à phase linéaire (`filtfilt`) pour préserver le "punch" des transitoires. |
+| **Analyzer** | **Z-Score Fuzzy Logic** | Détection de BPM statistique qui élimine les faux positifs (doubles/moitiés) via calcul d'écart-type. |
+| **Cleaner** | **Spectral Gating** | Débruitage stationnaire avancé basé sur `noisereduce` pour un fond sonore "noir absolu". |
+
+---
+
+## 🚀 Performances & Comparatif
+
+| Critère | Universal Audio Studio | LALAL.ai / Moises | Serato / VirtualDJ |
+| :--- | :--- | :--- | :--- |
+| **Modèle Voix** | **MDX-Net HQ_3 (SOTA)** | Propriétaire (Optimisé Cloud) | Low-Latency (Allégé) |
+| **Qualité Audio** | **Lossless (WAV 24-bit)** | Souvent compressé | Artefacts de phase |
+| **Confidentialité**| **100% Local (Offline)** | Upload Cloud requis | Local |
+| **Vitesse** | Lente (Focus Qualité) | Très Rapide | Temps Réel (10ms) |
+| **Coût** | **Gratuit** | Abonnement | Licence Logiciel |
+
+---
+
+## 📦 Installation
+
+### Pré-requis
+1.  **Python 3.10+** installé.
+2.  **FFmpeg** installé et ajouté au PATH système (Requis par `pydub`).
+
+### Dépendances
+Installez les bibliothèques nécessaires via pip :
+
+```bash
+pip install flask pywebview psutil numpy scipy librosa soundfile audio-separator pydub noisereduce mutagen openai-whisper torch onnxruntime
 ---
 
 ## ⚠️ PRÉ-REQUIS (À LIRE AVANT D'INSTALLER)
@@ -103,6 +146,7 @@ Lorsque la fenêtre de lecture (visualiseur d'onde) est ouverte :
 * **Frontend :** HTML5, Glassmorphism CSS, WaveSurfer.js
 * **Audio AI :** Torch, Demucs v4 (Hybrid Transformer), MDX-Net (UVR)
 * **Wrapper :** PyWebview (Standalone Window)
+
 
 
 
