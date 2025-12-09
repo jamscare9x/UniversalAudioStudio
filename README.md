@@ -33,9 +33,25 @@ Cette version intègre des moteurs audio entièrement réécrits pour corriger l
 | **Confidentialité**| **100% Local (Offline)** | Upload Cloud requis | Local |
 | **Vitesse** | Lente (Focus Qualité) | Très Rapide | Temps Réel (10ms) |
 | **Coût** | **Gratuit** | Abonnement | Licence Logiciel |
+| **Artefacts** | Minimes (grâce au Bitcrush Killer) | Audibles (compression) | Fréquents (Son "phasé" ou "aquatique") |
+| **Densité Spectrale** | ~99.8% (Spectre complet) | ~85% (Perte dans les aigus) | ~70-80% (Coupures pour la vitesse) |
 
 ---
 
+| Fonctionnalité | Universal Audio Studio | Moises.ai (Premium) | Serato DJ Pro |
+| :--- | :--- | :--- | :--- |
+| **Séparation Stems** | "6 Pistes (Voix, Drums, Bass, Other, Guitar, Piano)" | 4 à 5 Pistes | "4 Pistes (Vocal, Melody, Bass, Drums)" |
+| **Réparation Audio** | Oui (Vocal Doctor & Stem Doctor) | Non | Non |
+| **Lyrics (Paroles)** | Oui (Whisper IA Auto-synchro) | Oui | Non |
+| **BPM / Key** | Oui (Z-Score Haute Précision) | Oui | Oui (Mais souvent erroné sur les tempos complexes) |
+| **Mastering** | Oui (Auto-Remaster Multipiste) | Limité | Non (Juste un Limiteur de sortie) |
+| **Drum Separation** | Oui (Kick/Snare/Hats séparés) | Non (Drums est une seule piste) | Non |
+| **Débruitage** | Oui (Spectral Cleaner) | Non | Non |
+
+---
+
+
+---
 ## 📦 Installation
 
 ## ⚠️ PRÉ-REQUIS (À LIRE AVANT D'INSTALLER)
@@ -177,6 +193,7 @@ Ce projet est un "GUI Wrapper" et un pipeline d'amélioration pour plusieurs tec
 * OpenAI Whisper pour la transcription des paroles.
 
 **Licence :** MIT License. Vous êtes libre de modifier et distribuer.
+
 
 
 
