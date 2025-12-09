@@ -143,6 +143,23 @@ Lorsque la fenêtre de lecture (visualiseur d'onde) est ouverte :
 * **Audio AI :** Torch, Demucs v4 (Hybrid Transformer), MDX-Net (UVR)
 * **Wrapper :** PyWebview (Standalone Window)
 
+---
+
+## 🧠 Détails Techniques des Scripts
+* **suno_splitter.py :** Implémente apply_smooth_fuzzy_correction(). Analyse le RMS du signal, calcule un Z-Score pour déterminer la présence de signal utile, et applique une sigmoïde lissée pour générer un masque spectral sans transitions brusques (source des "clics" numériques).
+* **suno_reconstruct.py :** Fonction fill_gaps(). Scanne le tableau numpy audio à la recherche de séries de zéros parfaits (dropouts) et utilise scipy.interpolate.interp1d pour redessiner l'onde manquante.
+* **technical_report.py :** Utilise mutagen pour extraire le bitrate réel et la profondeur de bits, au lieu de se fier aux en-têtes de fichiers souvent erronés.
+
+---
+
+## 📝 Crédits & Licences
+Ce projet est un "GUI Wrapper" et un pipeline d'amélioration pour plusieurs technologies open-source incroyables :
+* Audio Separator (UVR5 Arch) pour les modèles MDX/Demucs.
+* Librosa & SciPy pour le traitement DSP (Digital Signal Processing).
+* Noisereduce (Tim Sainburg) pour l'algorithme de gating spectral.
+* OpenAI Whisper pour la transcription des paroles.
+
+**Licence :** MIT License. Vous êtes libre de modifier et distribuer.
 
 
 
